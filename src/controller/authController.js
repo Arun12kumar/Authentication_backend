@@ -105,7 +105,7 @@ export const login = async (req, res) => {
 
     // Refresh token (long-lived, includes jti)
     const refreshToken = jwt.sign(
-      { id: user._id, email: user.email, jti: tokenId },
+      { id: user._id, email: user.email },
       process.env.REFRESH_TOKEN,
       { expiresIn: process.env.REFRESH_TOKEN_EXPIRE || "7d" }
     );
