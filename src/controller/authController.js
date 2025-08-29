@@ -90,9 +90,8 @@ export const login = async (req, res) => {
       .status(200)
       .json({
         success: true,
-        data: user,
+        username: user.username,
         acessToken: token,
-        refreshToken: refreshToken,
         message: "sucessfully Login",
       });
   } catch (error) {
