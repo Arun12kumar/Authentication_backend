@@ -1,10 +1,15 @@
 import expess from 'express';
-import { login, logout, register } from '../controller/authController.js';
+import { authMiddleware } from "../middileware/authMiddleware.js";
+import { login, logout, register,refresh } from '../controller/authController.js';
 
 const authRouter = expess.Router();
 
 authRouter.post('/register',register);
 authRouter.post('/login',login);
 authRouter.post('/logout',logout);
+authRouter.post("/refresh", refresh);
+authRouter.get("/profile", authMiddleware, (req, res) => {
+  res.json({ success: true, user: req.user });
+});
 
 export default authRouter;
