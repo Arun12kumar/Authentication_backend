@@ -19,6 +19,7 @@ const productSchema = new mongoose.Schema(
       min: 0,
     },
     product_imageUrl:{type:String,required:true},
+    imagePublicId:{type:String},
     sale_price: {
       type: Number,
       min: 0,

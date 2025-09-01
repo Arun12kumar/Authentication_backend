@@ -4,6 +4,7 @@ import 'dotenv/config';
 import cookieParser from 'cookie-parser';
 import connectDB from './src/config/mongodb.js';
 import authRouter from './src/route/authRoute.js';
+import productRouter from './src/route/productRoute.js';
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -19,6 +20,7 @@ app.use(cors({
 //API ENDpoints
 
 app.use('/api/auth', authRouter);
+app.use('/api/product', productRouter);
 
 app.get('/', (req,res) => res.send('welcome to Backend'));
 
