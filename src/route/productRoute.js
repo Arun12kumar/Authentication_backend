@@ -1,5 +1,5 @@
 import express from 'express'
-import { createCategory, createProduct, createProductVarient, deleteAllCategories, deleteAllProducts, deleteCategoryById, deleteProductById, getAllCategories, getAllProducts, getCategoryById, getProductById, updateCategory, updateProduct } from '../controller/productController.js';
+import { createCategory, createProduct, createProductVarient, deleteAllCategories, deleteAllProducts, deleteCategoryById, deleteProductById, getAllCategories, getAllProducts, getCategoryById, getProductById, getProductByIdwithAllvarients, updateCategory, updateProduct } from '../controller/productController.js';
 import { upload,uploadMultiple } from '../middileware/multer.js';
 
 const productRouter = express.Router();
@@ -15,6 +15,7 @@ productRouter.delete("/category", deleteAllCategories);
 // product routes
 productRouter.post('/', upload.single("file"), createProduct)
 productRouter.get('/', getAllProducts)
+productRouter.get('/all_varient/:id', getProductByIdwithAllvarients)
 productRouter.get('/:id', getProductById)
 productRouter.put('/', upload.single("file"), updateProduct)
 productRouter.delete('/', deleteAllProducts)

@@ -214,6 +214,32 @@ export const getProductById = async (req, res) => {
   }
 };
 
+export const getProductByIdwithAllvarients = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find product with category
+    const product = await ProductModel.findById(id).populate("categoryId", "category_name");
+
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+
+    // Find all variants for this product
+    const variants = await productVarientModel.find({ productId: id });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        product,
+        variants,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 
 export const updateProduct = async (req, res) => {
   try {
