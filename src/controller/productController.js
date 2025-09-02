@@ -1,5 +1,6 @@
 import CategoryModel from "../models/categoryModel.js";
 import ProductModel from "../models/productModel.js";
+import productVarientModel from "../models/ProductVariant.js";
 import { uploadToCloudinary,deleteFromCloudinary } from "../utils/cloudinary.js";
 
 
@@ -281,6 +282,78 @@ export const deleteAllProducts = async (req, res) => {
     await ProductModel.deleteMany();
 
     return res.status(200).json({ success: true, message: "All products deleted" });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+export const createProductVarient = async (req, res) => {
+  try {
+    const {
+      productvarient_name,
+      productId,
+      productvarient_description,
+      productvarient_price,
+      productvarient_sale_price,
+      productvarient_stock_quantity,
+      is_active,
+    } = req.body;
+
+    // ✅ Validate required fields
+    if (
+      !productvarient_name ||
+      !productId ||
+      !productvarient_price ||
+      !productvarient_stock_quantity ||
+      !req.files ||
+      req.files.length < 4 ||
+      req.files.length > 6
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Missing required fields or invalid number of images (must be 4–6).",
+      });
+    }
+
+    // ✅ Check parent product exists
+    const product = await ProductModel.findById(productId);
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+
+    // Upload images to Cloudinary
+    const uploadedImages = await Promise.all(
+      req.files.map(async (file) => {
+        const cloudResult = await uploadToCloudinary(file.buffer, "product_variants");
+        return {
+          url: cloudResult.url,   // ✅ Make sure secure_url exists
+          public_id: cloudResult.public_id,
+        };
+      })
+    );
+    console.log(uploadedImages,'productvarient')
+
+    // ✅ Create new variant
+    const productVarient = new productVarientModel({
+      productvarient_name,
+      productId,
+      productvarient_description,
+      productvarient_price,
+      productvarient_sale_price: productvarient_sale_price || null,
+      productvarient_stock_quantity,
+      is_active: is_active !== undefined ? is_active : true,
+      productvarient_images: uploadedImages,
+    });
+
+    await productVarient.save();
+
+    return res.status(201).json({
+      success: true,
+      message: "Product variant created successfully",
+      data: productVarient,
+    });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }

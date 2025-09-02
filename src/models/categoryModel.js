@@ -13,7 +13,7 @@ const categorySchema = new mongoose.Schema(
       trim: true,
     },
     category_imageUrl:{type:String,required:true},
-    imagePublicId:{type:String},
+    imagePublicId:{type:String,required:true},
     is_active: {
       type: Boolean,
       default: true,

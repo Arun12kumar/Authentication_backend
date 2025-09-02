@@ -22,17 +22,13 @@ const productVarientSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
-    productvarient_images: {
-      type: [String], // array of image URLs
-      validate: {
-        validator: function (val) {
-          return val.length >= 4 && val.length <= 6;
-        },
-        message: "A product variant must have between 4 and 6 images.",
+    productvarient_images: [
+      {
+        url: { type: String, required: true },
+        public_id: { type: String, required: true },
       },
-      required: true,
-    },
-    sale_price: {
+    ],
+    productvarient_sale_price: {
       type: Number,
       min: 0,
       default: null,
