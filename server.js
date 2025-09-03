@@ -5,6 +5,8 @@ import cookieParser from 'cookie-parser';
 import connectDB from './src/config/mongodb.js';
 import authRouter from './src/route/authRoute.js';
 import productRouter from './src/route/productRoute.js';
+import orderRoute from './src/route/orderRoutes.js';
+import bodyParser from 'body-parser';
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -13,6 +15,8 @@ connectDB();
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }))
 app.use(cors({
     credentials:true
 }));
@@ -21,6 +25,7 @@ app.use(cors({
 
 app.use('/api/auth', authRouter);
 app.use('/api/product', productRouter);
+app.use('/api/order', orderRoute);
 
 app.get('/', (req,res) => res.send('welcome to Backend'));
 

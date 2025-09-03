@@ -359,7 +359,7 @@ export const createProductVarient = async (req, res) => {
         };
       })
     );
-    console.log(uploadedImages,'productvarient')
+
 
     // ✅ Create new variant
     const productVarient = new productVarientModel({
@@ -385,15 +385,6 @@ export const createProductVarient = async (req, res) => {
   }
 };
 
-// ✅ Get All Product Variants
-export const getAllProductVarients = async (req, res) => {
-  try {
-    const variants = await productVarientModel.find().populate("productId", "product_name");
-    return res.status(200).json({ success: true, data: variants });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
-  }
-};
 
 export const getProductVarientById = async (req, res) => {
   try {
