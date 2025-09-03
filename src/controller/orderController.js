@@ -1,11 +1,11 @@
 import OrderModel from "../models/orderModel.js";
+import { sendOrderToWhatsApp } from "../utils/whatsapp.js";
 import { orderValidate } from "../validators/orderValidation.js";
 
 // Create Cart
 export const createOrder = async (req, res) => {
   try {
-
-     const { error } = orderValidate.validate(req.body);
+    const { error } = orderValidate.validate(req.body);
 
     if (error) {
       return res.status(400).json({ message: error.details[0].message });
@@ -19,7 +19,7 @@ export const createOrder = async (req, res) => {
         .json({ message: "Customer details and at least one item are required" });
     }
 
-    // Create new cart
+    // Create new order
     const order = new OrderModel({
       customer,
       items,
@@ -27,15 +27,17 @@ export const createOrder = async (req, res) => {
 
     await order.save();
 
+    // Send WhatsApp notification to seller
+    await sendOrderToWhatsApp(order);
+
     res.status(201).json({
-      message: "order created successfully",
+      message: "Order created successfully & sent to WhatsApp",
       order,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
 
 // Get All Carts
 export const getAllOrder = async (req, res) => {
