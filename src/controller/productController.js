@@ -384,3 +384,125 @@ export const createProductVarient = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// ✅ Get All Product Variants
+export const getAllProductVarients = async (req, res) => {
+  try {
+    const variants = await productVarientModel.find().populate("productId", "product_name");
+    return res.status(200).json({ success: true, data: variants });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getProductVarientById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const variant = await productVarientModel.findById(id).populate("productId", "product_name");
+
+    if (!variant) {
+      return res.status(404).json({ success: false, message: "Product variant not found" });
+    }
+
+    return res.status(200).json({ success: true, data: variant });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ✅ Update Product Variant
+export const updateProductVarient = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      productvarient_name,
+      productvarient_description,
+      productvarient_price,
+      productvarient_sale_price,
+      productvarient_stock_quantity,
+      is_active,
+    } = req.body;
+
+    const variant = await productVarientModel.findById(id);
+    if (!variant) {
+      return res.status(404).json({ success: false, message: "Product variant not found" });
+    }
+
+    // Handle new image uploads if provided
+    let uploadedImages = variant.productvarient_images;
+    if (req.files && req.files.length > 0) {
+      // Delete old images from Cloudinary
+      await Promise.all(
+        variant.productvarient_images.map((img) => deleteFromCloudinary(img.public_id))
+      );
+
+      // Upload new ones
+      uploadedImages = await Promise.all(
+        req.files.map(async (file) => {
+          const cloudResult = await uploadToCloudinary(file.buffer, "product_variants");
+          return {
+            url: cloudResult.url,
+            public_id: cloudResult.public_id,
+          };
+        })
+      );
+    }
+
+    variant.productvarient_name = productvarient_name || variant.productvarient_name;
+    variant.productvarient_description = productvarient_description || variant.productvarient_description;
+    variant.productvarient_price = productvarient_price || variant.productvarient_price;
+    variant.productvarient_sale_price = productvarient_sale_price || variant.productvarient_sale_price;
+    variant.productvarient_stock_quantity = productvarient_stock_quantity || variant.productvarient_stock_quantity;
+    variant.is_active = is_active !== undefined ? is_active : variant.is_active;
+    variant.productvarient_images = uploadedImages;
+
+    await variant.save();
+
+    return res.status(200).json({ success: true, message: "Product variant updated successfully", data: variant });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ✅ Delete Product Variant By ID
+export const deleteProductVarientById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const variant = await productVarientModel.findById(id);
+
+    if (!variant) {
+      return res.status(404).json({ success: false, message: "Product variant not found" });
+    }
+
+    // Delete images from Cloudinary
+    await Promise.all(
+      variant.productvarient_images.map((img) => deleteFromCloudinary(img.public_id))
+    );
+
+    await productVarientModel.findByIdAndDelete(id);
+
+    return res.status(200).json({ success: true, message: "Product variant deleted successfully" });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ✅ Delete All Product Variants
+export const deleteAllProductVarients = async (req, res) => {
+  try {
+    const variants = await productVarientModel.find();
+
+    // Delete images from Cloudinary
+    await Promise.all(
+      variants.flatMap((variant) =>
+        variant.productvarient_images.map((img) => deleteFromCloudinary(img.public_id))
+      )
+    );
+
+    await productVarientModel.deleteMany();
+
+    return res.status(200).json({ success: true, message: "All product variants deleted successfully" });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
