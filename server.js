@@ -6,6 +6,7 @@ import connectDB from './src/config/mongodb.js';
 import authRouter from './src/route/authRoute.js';
 import productRouter from './src/route/productRoute.js';
 import orderRoute from './src/route/orderRoutes.js';
+import searchRouter from './src/route/searchRoutes.js';
 import bodyParser from 'body-parser';
 
 const app = express();
@@ -25,6 +26,7 @@ app.use(cors({
 
 app.use('/api/auth', authRouter);
 app.use('/api/product', productRouter);
+app.use('/api/search', searchRouter);
 app.use('/api/order', orderRoute);
 
 app.get('/', (req,res) => res.send('welcome to Backend'));

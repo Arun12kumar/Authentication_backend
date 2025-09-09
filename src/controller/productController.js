@@ -214,6 +214,8 @@ export const getProductById = async (req, res) => {
   }
 };
 
+
+
 export const getProductByIdwithAllvarients = async (req, res) => {
   try {
     const { id } = req.params;
@@ -497,3 +499,4 @@ export const deleteAllProductVarients = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+

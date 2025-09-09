@@ -48,4 +48,5 @@ productRouter.put("/product_varient/:id",authMiddleware, uploadMultiple, updateP
 productRouter.delete("/product_varient/:id",authMiddleware, deleteProductVarientById);
 productRouter.delete("/product_varient",authMiddleware, deleteAllProductVarients);
 
+
 export default productRouter;
