@@ -7,6 +7,7 @@ import authRouter from './src/route/authRoute.js';
 import productRouter from './src/route/productRoute.js';
 import orderRoute from './src/route/orderRoutes.js';
 import searchRouter from './src/route/searchRoutes.js';
+import cartRouter from './src/route/cartRoutes.js';
 import bodyParser from 'body-parser';
 
 const app = express();
@@ -28,6 +29,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/product', productRouter);
 app.use('/api/search', searchRouter);
 app.use('/api/order', orderRoute);
+app.use('/api/cart', cartRouter);
 
 app.get('/', (req,res) => res.send('welcome to Backend'));
 

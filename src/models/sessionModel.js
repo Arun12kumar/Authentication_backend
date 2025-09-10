@@ -19,6 +19,7 @@ const sessionSchema = new mongoose.Schema({
   // Session creation / last use
   createdAt: { type: Date, default: Date.now },
   lastUsedAt: { type: Date, default: Date.now },
+  refreshTokenexpiresAt:{ type: Date, default: Date.now },
 });
 
 const sessionModel =  mongoose.model("Session", sessionSchema);
