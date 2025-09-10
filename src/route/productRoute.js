@@ -21,12 +21,13 @@ import {
 } from "../controller/productController.js";
 import { upload, uploadMultiple } from "../middileware/multer.js";
 import { authMiddleware } from "../middileware/authMiddleware.js";
+import { allowEditorOrAdmin } from "../middileware/roleMiddleware.js";
 
 const productRouter = express.Router();
 
 // category routes
 productRouter.post("/category",authMiddleware, upload.single("file"), createCategory);
-productRouter.get("/category", getAllCategories);
+productRouter.get("/category",authMiddleware,allowEditorOrAdmin, getAllCategories);
 productRouter.get("/category/:id", getCategoryById);
 productRouter.put("/category/:id",authMiddleware, upload.single("file"), updateCategory);
 productRouter.delete("/category/:id",authMiddleware, deleteCategoryById);
