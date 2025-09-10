@@ -6,8 +6,8 @@ const userSchema = new mongoose.Schema({
     password:{type:String, required: true},
     role: {
     type: String,
-    enum: ["admin", "editor"], // allowed values
-    default: "admin", // default role
+    enum: ["admin", "editor","user"], // allowed values
+    default: "user", // default role
     },
     verifyotp:{type:String, default: '',max: 6},
     verifyotpExpireAt:{type:Number, default: 0},
