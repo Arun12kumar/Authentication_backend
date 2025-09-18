@@ -1,67 +1,83 @@
 import mongoose from "mongoose";
 
-const orderItemSchema = new mongoose.Schema(
-  {
-    productName: {
-      type: String,
-      required: true,
-    },
-    description: {
-      type: String,
-      required: true,
-    },
-    imageUrl: { type: String, required: true },
-    variantName: {
-      type: String,
-      required: true,
-    },
-    quantity: {
-      type: Number,
-      required: true,
-      min: 1,
-    },
-    price: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
-    stock_quantity: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
+const orderItemSchema = new mongoose.Schema({
+  product: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Product",
+    required: true,
   },
-  { _id: false }
-);
+  variant: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Product_Varient",
+  },
+  quantity: {
+    type: Number,
+    required: true,
+    min: 1,
+  },
+  price: {
+    type: Number,
+    required: true, // Finalized single-unit price at time of order
+  },
+  totalPrice: {
+    type: Number,
+    required: true, // quantity * price
+  },
+});
 
 const orderSchema = new mongoose.Schema(
   {
-    customer: {
-      name: { type: String, required: true },
-      email: { type: String },
-      phone: { type: String, required: true },
-      address: { type: String, required: true },
-      city: { type: String, required: true },
-      postalCode: { type: String, required: true },
-      country: { type: String, required: true },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
     items: [orderItemSchema],
-    totalQuantity: { type: Number, default: 0 },
-    totalAmount: { type: Number, default: 0 },
-    is_active: {
-      type: Boolean,
-      default: true,
+    status: {
+      type: String,
+      enum: ["pending", "confirmed", "shipped", "delivered", "cancelled"],
+      default: "pending",
     },
+    paymentMethod: {
+      type: String,
+      enum: ["cod"],
+      default: "cod",
+    },
+    subtotal: {
+      type: Number,
+      required: true,
+    },
+    tax: {
+      type: Number,
+      default: 0,
+    },
+    shippingFee: {
+      type: Number,
+      default: 0,
+    },
+    discount: {
+      type: Number,
+      default: 0,
+    },
+    totalAmount: {
+      type: Number,
+      required: true,
+    },
+    shippingAddress: {
+      fullName: { type: String, required: true },
+      phone: { type: String, required: true },
+      addressLine1: { type: String, required: true },
+      addressLine2: { type: String },
+      city: { type: String, required: true },
+      state: { type: String, required: true },
+      postalCode: { type: String, required: true },
+      country: { type: String, required: true, default: "India" },
+    },
+    notes: { type: String },
   },
   { timestamps: true }
 );
-orderSchema.pre("save", function (next) {
-  this.totalQuantity = this.items.reduce((sum, item) => sum + item.quantity, 0);
-  this.totalAmount = this.items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
-  next();
-});
+
 const OrderModel = mongoose.model("Order", orderSchema);
+
 export default OrderModel;

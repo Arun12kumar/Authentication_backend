@@ -16,6 +16,20 @@ const cartItemSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Product_Varient", // optional if you use variants
   },
+  price: {
+    type: Number,
+    required: true, // Finalized single-unit price at time of order
+  },
+  totalPrice: {
+    type: Number,
+    required: true, // quantity * price
+  },
+});
+
+// Automatically calculate totalPrice for each item
+cartItemSchema.pre("save", function (next) {
+  this.totalPrice = this.quantity * this.price;
+  next();
 });
 
 const cartSchema = new mongoose.Schema(
@@ -31,6 +45,13 @@ const cartSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const cartModel =  mongoose.model("Cart", cartSchema);
+// Helper method to recalc all items (useful for updates)
+cartSchema.methods.recalculateTotals = function () {
+  this.items.forEach((item) => {
+    item.totalPrice = item.quantity * item.price;
+  });
+};
+
+const cartModel = mongoose.model("Cart", cartSchema);
 
 export default cartModel;

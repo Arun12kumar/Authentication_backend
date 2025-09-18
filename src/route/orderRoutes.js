@@ -1,13 +1,14 @@
 import express from 'express';
-import { createOrder, deleteAllOrder, deleteOrderById, getAllOrder, getOrderById } from '../controller/orderController.js';
+import { createOrder, deleteOrderById,  getAllOrders, getOrderById, updateOrderById } from '../controller/orderController.js';
 
 
 const orderRoute = express.Router();
 
 orderRoute.post('/',createOrder)
-orderRoute.get("/", getAllOrder);
+orderRoute.get("/", getAllOrders);
 orderRoute.get("/:id", getOrderById);
 orderRoute.delete("/:id", deleteOrderById);
-orderRoute.delete("/", deleteAllOrder);
+orderRoute.put("/:id", updateOrderById);
+
 
 export default orderRoute;

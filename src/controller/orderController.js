@@ -1,86 +1,115 @@
-import OrderModel from "../models/orderModel.js";
-import { sendOrderToWhatsApp } from "../utils/whatsapp.js";
-import { orderValidate } from "../validators/orderValidation.js";
+import Order from "../models/orderModel.js"; // adjust path
 
-// Create Cart
+// ✅ Create new order
 export const createOrder = async (req, res) => {
   try {
-    const { error } = orderValidate.validate(req.body);
-
-    if (error) {
-      return res.status(400).json({ message: error.details[0].message });
-    }
-
-    const { customer, items } = req.body;
-
-    if (!customer || !items || items.length === 0) {
-      return res
-        .status(400)
-        .json({ message: "Customer details and at least one item are required" });
-    }
-
-    // Create new order
-    const order = new OrderModel({
-      customer,
+    const {
       items,
+      subtotal,
+      tax,
+      shippingFee,
+      discount,
+      totalAmount,
+      shippingAddress,
+      notes,
+    } = req.body;
+
+    // Attach logged-in user ID (assuming you have req.user set by auth middleware)
+    const userId = req.user?.id || req.body.user;
+
+    if (!items || items.length === 0) {
+      return res.status(400).json({ success: false, message: "No items in order" });
+    }
+
+    const newOrder = new Order({
+      user: userId,
+      items,
+      subtotal,
+      tax,
+      shippingFee,
+      discount,
+      totalAmount,
+      shippingAddress,
+      notes,
     });
 
-    await order.save();
-
-    // Send WhatsApp notification to seller
-    await sendOrderToWhatsApp(order);
-
-    res.status(201).json({
-      message: "Order created successfully & sent to WhatsApp",
-      order,
-    });
+    const savedOrder = await newOrder.save();
+    res.status(201).json({ success: true, order: savedOrder });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Create Order Error:", error);
+    res.status(500).json({ success: false, message: "Failed to create order" });
   }
 };
 
-// Get All Carts
-export const getAllOrder = async (req, res) => {
+// ✅ Get all orders
+export const getAllOrders = async (req, res) => {
   try {
-    const orders = await OrderModel.find();
-    res.status(200).json(orders);
+    const orders = await Order.find()
+      .populate("user", "username email")
+      .populate("items.product")
+      .populate("items.variant");
+
+    res.json({ success: true, orders });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Get All Orders Error:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch orders" });
   }
 };
 
-// Get Cart By ID
+// ✅ Get single order by ID
 export const getOrderById = async (req, res) => {
   try {
-    const orders = await OrderModel.findById(req.params.id);
-    if (!cart) {
-      return res.status(404).json({ message: "Order not found" });
+    const order = await Order.findById(req.params.id)
+      .populate("user", "username email")
+      .populate("items.product")
+      .populate("items.variant");
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
     }
-    res.status(200).json(orders);
+
+    res.json({ success: true, order });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Get Order Error:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch order" });
   }
 };
 
-// Delete Cart By ID
+// ✅ Update order by ID
+export const updateOrderById = async (req, res) => {
+  try {
+    const updatedOrder = await Order.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    )
+      .populate("user", "username email")
+      .populate("items.product")
+      .populate("items.variant");
+
+    if (!updatedOrder) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    res.json({ success: true, order: updatedOrder });
+  } catch (error) {
+    console.error("Update Order Error:", error);
+    res.status(500).json({ success: false, message: "Failed to update order" });
+  }
+};
+
+// ✅ Delete order by ID
 export const deleteOrderById = async (req, res) => {
   try {
-    const order = await OrderModel.findByIdAndDelete(req.params.id);
-    if (!cart) {
-      return res.status(404).json({ message: "order not found" });
-    }
-    res.status(200).json({ message: "order deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+    const deletedOrder = await Order.findByIdAndDelete(req.params.id);
 
-// Delete All Carts
-export const deleteAllOrder = async (req, res) => {
-  try {
-    await OrderModel.deleteMany();
-    res.status(200).json({ message: "All orders deleted successfully" });
+    if (!deletedOrder) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    res.json({ success: true, message: "Order deleted" });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Delete Order Error:", error);
+    res.status(500).json({ success: false, message: "Failed to delete order" });
   }
 };
