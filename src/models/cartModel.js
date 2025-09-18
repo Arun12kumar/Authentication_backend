@@ -14,7 +14,7 @@ const cartItemSchema = new mongoose.Schema({
   },
   variant: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "ProductVariant", // optional if you use variants
+    ref: "Product_Varient", // optional if you use variants
   },
 });
 

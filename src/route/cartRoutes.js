@@ -7,7 +7,7 @@ import { authMiddleware } from '../middileware/authMiddleware.js';
 const cartRouter = express.Router();
 
 cartRouter.post('/add',authMiddleware,addToCart)
-cartRouter.get("/",authMiddleware, getCart);
+cartRouter.get("/get",authMiddleware, getCart);
 cartRouter.put("/update",authMiddleware, updateCartItem);
 cartRouter.delete("/remove/:itemId",authMiddleware, removeCartItem);
 
