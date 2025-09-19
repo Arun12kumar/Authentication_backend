@@ -25,12 +25,6 @@ const orderItemSchema = new mongoose.Schema({
   },
 });
 
-// The pre-save hook for calculating totalPrice for an order item
-orderItemSchema.pre("save", function (next) {
-  this.totalPrice = this.quantity * this.price;
-  next();
-});
-
 const orderSchema = new mongoose.Schema(
   {
     user: {

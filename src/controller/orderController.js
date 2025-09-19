@@ -14,7 +14,8 @@ export const createOrder = async (req, res) => {
     } else if (cartId) {
       const cart = await cartModel
         .findById(cartId)
-        .populate("items.product variant");
+        .populate("items.product");
+      console.log(cart,"testing")  
       if (!cart || !cart.items.length) {
         return res
           .status(400)
@@ -25,6 +26,7 @@ export const createOrder = async (req, res) => {
         variant: item.variant?._id,
         quantity: item.quantity,
         price: item.price,
+        totalPrice: item.totalPrice
       }));
       cart.items = [];
       await cart.save();
@@ -70,3 +72,18 @@ export const createOrder = async (req, res) => {
     res.status(500).json({ success: false, message: "Failed to create order" });
   }
 };
+
+
+export const getAllorders = async(req, res) =>{
+  try {
+    const order = await OrderModel.find();
+    if(!order){
+      return res.status(404).json({success:false , message:"NotFound"})
+    }
+    res.status(200).json({success:true, data:order})
+    
+  } catch (error) {
+    console.error("Create Order Error:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch order" });
+  }
+}

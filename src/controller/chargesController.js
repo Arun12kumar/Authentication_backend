@@ -8,9 +8,9 @@ export const createCharges = async (req, res) => {
 
     // Validate input
     if (
-      tax === undefined ||
-      shippingFee === undefined ||
-      discount === undefined
+      tax === "" ||
+      shippingFee === "" ||
+      discount === ""
     ) {
       return res.status(400).json({ success: false, message: "Invalid charges" });
     }
