@@ -10,14 +10,14 @@ export const sendOrderToWhatsApp = async (order) => {
     const messageBody = `
 🛒 *New Order Received!*
 
-👤 Customer: ${order.customer.name}
-📞 Phone: ${order.customer.phone}
-🏠 Address: ${order.customer.address}, ${order.customer.city}, ${order.customer.postalCode}, ${order.customer.country}
+👤 Customer: ${order.shippingAddress.fullName}
+📞 Phone: ${order.shippingAddress.phone}
+🏠 Address: ${order.shippingAddress.addressLine1}, ${order.shippingAddress.city}, ${order.shippingAddress.postalCode}, ${order.shippingAddress.state}, ${order.shippingAddress.country}
 
 📦 *Items:*
-${order.items.map(i => `- ${i.productName} (${i.variantName}) x${i.quantity} = ₹${i.price * i.quantity}`).join("\n")}
+${order.items.map(i => `- ${i.product.product_name} (${i.variant.productvarient_name}) x${i.quantity} = ₹${i.price}`).join("\n")}
 
-🧾 Total Quantity: ${order.totalQuantity}
+
 💰 Total Amount: ₹${order.totalAmount}
 
 ✅ Please prepare the order!

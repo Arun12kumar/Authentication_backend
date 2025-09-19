@@ -1,6 +1,7 @@
 import cartModel from "../models/cartModel.js";
 import ChargesModel from "../models/chargesModel.js";
 import OrderModel from "../models/orderModel.js"; // adjust path
+import { sendOrderToWhatsApp } from "../utils/whatsapp.js";
 
 export const createOrder = async (req, res) => {
   try {
@@ -78,6 +79,9 @@ export const createOrder = async (req, res) => {
     });
 
     const savedOrder = await newOrder.save();
+      // Send WhatsApp notification to seller
+    await sendOrderToWhatsApp(savedOrder);
+
     res.status(201).json({ success: true, order: savedOrder });
   } catch (error) {
     console.error("Create Order Error:", error);
