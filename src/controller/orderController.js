@@ -10,24 +10,35 @@ export const createOrder = async (req, res) => {
 
     // ✅ Direct buy or cart checkout
     if (items && items.length > 0) {
-      finalItems = items;
+      // Buy Now (Do NOT clear cart)
+      finalItems = items.map((item) => ({
+        product: item.product,
+        variant: item.variant,
+        quantity: item.quantity,
+        price: item.price,
+        totalPrice: item.price * item.quantity,
+      }));
     } else if (cartId) {
+      // Checkout from Cart
       const cart = await cartModel
         .findById(cartId)
-        .populate("items.product");
-      console.log(cart,"testing")  
+        .populate("items.product items.variant");
+
       if (!cart || !cart.items.length) {
         return res
           .status(400)
           .json({ success: false, message: "Cart is empty" });
       }
+
       finalItems = cart.items.map((item) => ({
         product: item.product?._id,
         variant: item.variant?._id,
         quantity: item.quantity,
         price: item.price,
-        totalPrice: item.totalPrice
+        totalPrice: item.totalPrice,
       }));
+
+      // ✅ Only clear cart when order is from cart
       cart.items = [];
       await cart.save();
     } else {
@@ -53,13 +64,14 @@ export const createOrder = async (req, res) => {
 
     const totalAmount = subtotal + taxAmount + shippingFee - discountAmount;
 
+    // ✅ Create new order
     const newOrder = new OrderModel({
       user: userId,
       items: finalItems,
       subtotal,
-      tax:taxAmount,
+      tax: taxAmount,
       shippingFee,
-      discount:discountAmount,
+      discount: discountAmount,
       totalAmount,
       shippingAddress,
       notes,
@@ -69,21 +81,56 @@ export const createOrder = async (req, res) => {
     res.status(201).json({ success: true, order: savedOrder });
   } catch (error) {
     console.error("Create Order Error:", error);
-    res.status(500).json({ success: false, message: "Failed to create order" });
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to create order" });
   }
 };
 
-
-export const getAllorders = async(req, res) =>{
+export const getAllOrders = async (req, res) => {
   try {
-    const order = await OrderModel.find();
-    if(!order){
-      return res.status(404).json({success:false , message:"NotFound"})
+    const orders = await OrderModel.find()
+    .populate("user", "username") 
+    .populate("items.product", "product_name product_price product_imageUrl") 
+    .populate("items.variant", "productvarient_name"); 
+    if (!orders || orders.length === 0) {
+      return res.status(404).json({ success: false, message: "No orders found" });
     }
-    res.status(200).json({success:true, data:order})
-    
+    res.status(200).json({ success: true, data: orders });
   } catch (error) {
-    console.error("Create Order Error:", error);
-    res.status(500).json({ success: false, message: "Failed to fetch order" });
+    console.error("Get All Orders Error:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch orders" });
   }
-}
+};
+
+export const deleteOrderById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedOrder = await OrderModel.findByIdAndDelete(id);
+
+    if (!deletedOrder) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    res.status(200).json({ success: true, message: "Order deleted successfully" });
+  } catch (error) {
+    console.error("Delete Order Error:", error);
+    res.status(500).json({ success: false, message: "Failed to delete order" });
+  }
+};
+
+// ✅ Delete all orders
+export const deleteAllOrders = async (req, res) => {
+  try {
+    const result = await OrderModel.deleteMany();
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ success: false, message: "No orders found to delete" });
+    }
+
+    res.status(200).json({ success: true, message: "All orders deleted successfully" });
+  } catch (error) {
+    console.error("Delete All Orders Error:", error);
+    res.status(500).json({ success: false, message: "Failed to delete all orders" });
+  }
+};
