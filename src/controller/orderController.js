@@ -1,33 +1,63 @@
-import Order from "../models/orderModel.js"; // adjust path
+import cartModel from "../models/cartModel.js";
+import ChargesModel from "../models/chargesModel.js";
+import OrderModel from "../models/orderModel.js"; // adjust path
 
-// ✅ Create new order
 export const createOrder = async (req, res) => {
   try {
-    const {
-      items,
-      subtotal,
-      tax,
-      shippingFee,
-      discount,
-      totalAmount,
-      shippingAddress,
-      notes,
-    } = req.body;
+    const { items, cartId, shippingAddress, notes } = req.body;
+    const userId = req.user?.id;
+    let finalItems = [];
 
-    // Attach logged-in user ID (assuming you have req.user set by auth middleware)
-    const userId = req.user?.id || req.body.user;
-
-    if (!items || items.length === 0) {
-      return res.status(400).json({ success: false, message: "No items in order" });
+    // ✅ Direct buy or cart checkout
+    if (items && items.length > 0) {
+      finalItems = items;
+    } else if (cartId) {
+      const cart = await cartModel
+        .findById(cartId)
+        .populate("items.product variant");
+      if (!cart || !cart.items.length) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Cart is empty" });
+      }
+      finalItems = cart.items.map((item) => ({
+        product: item.product?._id,
+        variant: item.variant?._id,
+        quantity: item.quantity,
+        price: item.price,
+      }));
+      cart.items = [];
+      await cart.save();
+    } else {
+      return res
+        .status(400)
+        .json({ success: false, message: "No items provided" });
     }
 
-    const newOrder = new Order({
+    // ✅ Auto calculate subtotal
+    const subtotal = finalItems.reduce(
+      (acc, item) => acc + item.price * item.quantity,
+      0
+    );
+
+    // ✅ Fetch charges from DB
+    const charges = await ChargesModel.findOne();
+    const tax = charges?.tax || 0;
+    const shippingFee = charges?.shippingFee || 0;
+    const discount = charges?.discount || 0;
+
+    const taxAmount = (subtotal * tax) / 100;
+    const discountAmount = (subtotal * discount) / 100;
+
+    const totalAmount = subtotal + taxAmount + shippingFee - discountAmount;
+
+    const newOrder = new OrderModel({
       user: userId,
-      items,
+      items: finalItems,
       subtotal,
-      tax,
+      tax:taxAmount,
       shippingFee,
-      discount,
+      discount:discountAmount,
       totalAmount,
       shippingAddress,
       notes,
@@ -38,78 +68,5 @@ export const createOrder = async (req, res) => {
   } catch (error) {
     console.error("Create Order Error:", error);
     res.status(500).json({ success: false, message: "Failed to create order" });
-  }
-};
-
-// ✅ Get all orders
-export const getAllOrders = async (req, res) => {
-  try {
-    const orders = await Order.find()
-      .populate("user", "username email")
-      .populate("items.product")
-      .populate("items.variant");
-
-    res.json({ success: true, orders });
-  } catch (error) {
-    console.error("Get All Orders Error:", error);
-    res.status(500).json({ success: false, message: "Failed to fetch orders" });
-  }
-};
-
-// ✅ Get single order by ID
-export const getOrderById = async (req, res) => {
-  try {
-    const order = await Order.findById(req.params.id)
-      .populate("user", "username email")
-      .populate("items.product")
-      .populate("items.variant");
-
-    if (!order) {
-      return res.status(404).json({ success: false, message: "Order not found" });
-    }
-
-    res.json({ success: true, order });
-  } catch (error) {
-    console.error("Get Order Error:", error);
-    res.status(500).json({ success: false, message: "Failed to fetch order" });
-  }
-};
-
-// ✅ Update order by ID
-export const updateOrderById = async (req, res) => {
-  try {
-    const updatedOrder = await Order.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    )
-      .populate("user", "username email")
-      .populate("items.product")
-      .populate("items.variant");
-
-    if (!updatedOrder) {
-      return res.status(404).json({ success: false, message: "Order not found" });
-    }
-
-    res.json({ success: true, order: updatedOrder });
-  } catch (error) {
-    console.error("Update Order Error:", error);
-    res.status(500).json({ success: false, message: "Failed to update order" });
-  }
-};
-
-// ✅ Delete order by ID
-export const deleteOrderById = async (req, res) => {
-  try {
-    const deletedOrder = await Order.findByIdAndDelete(req.params.id);
-
-    if (!deletedOrder) {
-      return res.status(404).json({ success: false, message: "Order not found" });
-    }
-
-    res.json({ success: true, message: "Order deleted" });
-  } catch (error) {
-    console.error("Delete Order Error:", error);
-    res.status(500).json({ success: false, message: "Failed to delete order" });
   }
 };
