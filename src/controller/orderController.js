@@ -79,8 +79,14 @@ export const createOrder = async (req, res) => {
     });
 
     const savedOrder = await newOrder.save();
+
+    // ✅ Populate products & variants for WhatsApp message
+    const tosendData = await OrderModel.findById(savedOrder._id)
+      .populate("items.product")
+      .populate("items.variant");
+
       // Send WhatsApp notification to seller
-    await sendOrderToWhatsApp(savedOrder);
+    await sendOrderToWhatsApp(tosendData);
 
     res.status(201).json({ success: true, order: savedOrder });
   } catch (error) {
