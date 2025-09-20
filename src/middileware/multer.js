@@ -37,3 +37,12 @@ export const uploadMultiple = (req, res, next) => {
     next();
   });
 };
+
+export const uploadReview = (req, res, next) => {
+  const handler = upload.array("file", 6); // allow 0–6 files
+
+  handler(req, res, (err) => {
+    if (err) return next(err); // multer error
+    next();
+  });
+};

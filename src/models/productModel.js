@@ -18,6 +18,14 @@ const productSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    averageRating: {
+      type: Number,
+      default: 0,
+    },
+    numReviews: {
+      type: Number,
+      default: 0,
+    },
     product_imageUrl:{type:String,required:true},
     imagePublicId:{type:String,required:true},
     sale_price: {
